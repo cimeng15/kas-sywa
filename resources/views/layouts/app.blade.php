@@ -23,16 +23,16 @@
         </script>
     </head>
     <body class="font-sans antialiased bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-200" style="font-family: 'Inter', sans-serif;">
-        <div x-data="{ sidebarOpen: false }" class="flex h-screen overflow-hidden">
+        <div x-data="{ sidebarOpen: false }">
             <div x-show="sidebarOpen" x-on:click="sidebarOpen = false" x-transition:enter="transition-opacity ease-linear duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-30 bg-gray-900/50 hidden" style="display: none;"></div>
 
             <!-- Sidebar -->
-            <aside class="hidden lg:flex flex-col w-64 bg-gradient-to-b from-gray-900 via-gray-900 to-emerald-950 flex-shrink-0 border-r border-white/5 h-screen">
+            <aside class="hidden lg:flex flex-col fixed top-0 left-0 bottom-0 w-64 bg-gradient-to-b from-gray-900 via-gray-900 to-emerald-950 border-r border-white/5 z-40">
                 @include('layouts.navigation')
             </aside>
 
             <!-- Main Content -->
-            <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+            <div class="lg:ml-64 flex flex-col min-h-screen">
                 <!-- Top Navbar -->
                 <header class="sticky top-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-colors duration-200">
                     <div class="flex items-center justify-between h-16 px-4 sm:px-6">
