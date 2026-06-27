@@ -87,7 +87,7 @@
                 <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                     @forelse($transactions as $trx)
                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                            <td class="px-5 py-3 text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">{{ \Carbon\Carbon::parse($trx->date)->format('d M Y') }}</td>
+                            <td class="px-5 py-3 text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">{{ \Carbon\Carbon::parse($trx->date)->format('d M Y H:i') }}</td>
                             <td class="px-5 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">{{ $trx->description }}</td>
                             @if(auth()->user()->isOrangTua())
                                 <td class="px-5 py-3 text-sm text-gray-600 dark:text-gray-300">{{ $trx->creator->name ?? $trx->user->name ?? '-' }}</td>
@@ -155,7 +155,7 @@
                     <div class="min-w-0 flex-1">
                         <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $trx->description }}</p>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                            {{ \Carbon\Carbon::parse($trx->date)->format('d M Y') }}
+                            {{ \Carbon\Carbon::parse($trx->date)->format('d M Y H:i') }}
                             @if(auth()->user()->isOrangTua() && $trx->user)
                                 • {{ $trx->user->name }}
                             @endif

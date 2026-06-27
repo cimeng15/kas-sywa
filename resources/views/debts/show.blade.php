@@ -151,7 +151,7 @@
                     @forelse($debt->payments()->latest()->get() as $payment)
                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                             @if($debt->isCicilanTetap())<td class="px-5 py-3 text-sm text-gray-900 dark:text-gray-100 font-medium">{{ $payment->installment_number ? 'Ke-' . $payment->installment_number : '-' }}</td>@endif
-                            <td class="px-5 py-3 text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">{{ \Carbon\Carbon::parse($payment->date)->format('d M Y') }}</td>
+                            <td class="px-5 py-3 text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">{{ \Carbon\Carbon::parse($payment->date)->format('d M Y H:i') }}</td>
                             <td class="px-5 py-3 text-sm font-medium text-green-600 whitespace-nowrap">Rp {{ number_format($payment->amount, 0, ',', '.') }}</td>
                             <td class="px-5 py-3 text-sm text-gray-600 dark:text-gray-300">{{ $payment->note ?? '-' }}</td>
                         </tr>

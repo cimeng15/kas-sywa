@@ -141,7 +141,7 @@
                     <tbody class="divide-y divide-gray-50 dark:divide-gray-800">
                         @forelse($latestTransactions as $trx)
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                                <td class="px-5 py-3 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">{{ $trx->date->format('d M Y') }}</td>
+                                <td class="px-5 py-3 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">{{ $trx->date->format('d M Y H:i') }}</td>
                                 <td class="px-5 py-3 text-sm font-medium text-gray-900 dark:text-white">{{ $trx->description }}</td>
                                 @if(auth()->user()->isOrangTua())<td class="px-5 py-3 text-sm text-gray-600 dark:text-gray-400">{{ $trx->creator->name ?? $trx->user->name ?? '-' }}</td>@endif
                                 <td class="px-5 py-3 text-sm text-gray-600 dark:text-gray-400">{{ $trx->category->name ?? '-' }}</td>
@@ -171,7 +171,7 @@
                             <div class="min-w-0 flex-1">
                                 <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ $trx->description }}</p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                    {{ $trx->date->format('d M Y') }}
+                                    {{ $trx->date->format('d M Y H:i') }}
                                     @if(auth()->user()->isOrangTua() && $trx->creator) • Dinput: {{ $trx->creator->name }}@endif
                                     • {{ $trx->category->name ?? '-' }}
                                 </p>
