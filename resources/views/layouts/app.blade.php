@@ -32,7 +32,7 @@
             </aside>
 
             <!-- Main Content -->
-            <div class="lg:pl-64">
+            <div class="lg:pl-64 w-full min-h-screen">
                 <!-- Top Navbar -->
                 <header class="sticky top-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-colors duration-200">
                     <div class="flex items-center justify-between h-16 px-4 sm:px-6">
