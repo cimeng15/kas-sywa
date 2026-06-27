@@ -27,7 +27,7 @@
             <div x-show="sidebarOpen" x-on:click="sidebarOpen = false" x-transition:enter="transition-opacity ease-linear duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-30 bg-gray-900/50 hidden" style="display: none;"></div>
 
             <!-- Sidebar -->
-            <aside class="hidden lg:flex flex-col w-64 bg-gradient-to-b from-gray-900 via-gray-900 to-emerald-950 flex-shrink-0 border-r border-white/5 h-screen sticky top-0">
+            <aside class="hidden lg:flex flex-col w-64 bg-gradient-to-b from-gray-900 via-gray-900 to-emerald-950 flex-shrink-0 border-r border-white/5">
                 @include('layouts.navigation')
             </aside>
 
