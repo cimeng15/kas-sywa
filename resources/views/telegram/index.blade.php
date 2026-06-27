@@ -154,11 +154,11 @@
             <h3 class="text-lg font-semibold text-gray-800 mb-3">Perintah Chat Bot</h3>
             <div class="space-y-2 text-sm">
                 <div class="flex gap-2">
-                    <code class="bg-gray-100 px-2 py-0.5 rounded text-gray-700 font-mono flex-shrink-0">/nota masuk 500 Gaji</code>
+                    <code class="bg-gray-100 px-2 py-0.5 rounded text-gray-700 font-mono flex-shrink-0">/masuk 500 Gaji</code>
                     <span class="text-gray-500">Catat pemasukan</span>
                 </div>
                 <div class="flex gap-2">
-                    <code class="bg-gray-100 px-2 py-0.5 rounded text-gray-700 font-mono flex-shrink-0">/nota keluar 150 Makan</code>
+                    <code class="bg-gray-100 px-2 py-0.5 rounded text-gray-700 font-mono flex-shrink-0">/keluar 150 Makan</code>
                     <span class="text-gray-500">Catat pengeluaran</span>
                 </div>
                 <div class="flex gap-2">

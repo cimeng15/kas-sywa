@@ -47,7 +47,7 @@ class TelegramWebhookController extends Controller
     {
         $text = trim($text);
 
-        if (preg_match('/^\/nota\s+(masuk|keluar)\s+(\d+(?:[.,]\d+)?)\s+(.+)/iu', $text, $m)) {
+        if (preg_match('/^\/(masuk|keluar)\s+(\d+(?:[.,]\d+)?)\s+(.+)/iu', $text, $m)) {
             $type = strtolower($m[1]) === 'masuk' ? 'income' : 'expense';
             $amount = (float) str_replace(',', '.', $m[2]);
             $description = trim($m[3]);
@@ -68,10 +68,10 @@ class TelegramWebhookController extends Controller
     protected function handleBantu(int $chatId): void
     {
         $text = "📋 *Daftar Perintah Kas-Keluarga*\n\n"
-            . "/nota masuk \\<nominal\\> \\<deskripsi\\> — Catat pemasukan\n"
-            . "_Contoh: /nota masuk 500 Gaji_\n\n"
-            . "/nota keluar \\<nominal\\> \\<deskripsi\\> — Catat pengeluaran\n"
-            . "_Contoh: /nota keluar 150 Makan siang_\n\n"
+            . "/masuk \\<nominal\\> \\<deskripsi\\> — Catat pemasukan\n"
+            . "_Contoh: /masuk 500 Gaji_\n\n"
+            . "/keluar \\<nominal\\> \\<deskripsi\\> — Catat pengeluaran\n"
+            . "_Contoh: /keluar 150 Makan siang_\n\n"
             . "/link \\<kode\\> — Hubungkan akun Telegram\n"
             . "_Contoh: /link ABC123_\n\n"
             . "/bantu — Tampilkan daftar ini";
