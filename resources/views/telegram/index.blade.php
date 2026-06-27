@@ -1,11 +1,10 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="text-xl font-semibold leading-tight text-gray-800">
-            Telegram Bot
-        </h2>
-    </x-slot>
+@extends('layouts.app')
 
-    <div class="py-8">
+@section('title', 'Telegram Bot')
+@section('header_title', 'Telegram Bot')
+
+@section('content')
+<div class="py-8">
         <div class="mx-auto max-w-2xl space-y-6">
             @if (session('status'))
                 <div class="rounded-lg bg-green-50 p-4 text-sm text-green-700 border border-green-200">
@@ -113,4 +112,4 @@
             alert('Kode OTP disalin!');
         }
     </script>
-</x-app-layout>
+@endsection
