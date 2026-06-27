@@ -6,7 +6,6 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -31,11 +30,6 @@ class User extends Authenticatable
         return $this->role === 'orang_tua';
     }
 
-    public function isAnak(): bool
-    {
-        return $this->role === 'anak';
-    }
-
     public function getAvatarUrlAttribute(): string
     {
         if ($this->avatar) {
@@ -47,11 +41,6 @@ class User extends Authenticatable
     public function hasAvatar(): bool
     {
         return !empty($this->avatar);
-    }
-
-    public function parent(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'parent_id');
     }
 
     public function children(): HasMany

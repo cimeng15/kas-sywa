@@ -16,19 +16,17 @@ class TelegramUser extends Model
         'linked_at',
     ];
 
-    protected $casts = [
-        'otp_expires_at' => 'datetime',
-        'linked_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'otp_expires_at' => 'datetime',
+            'linked_at' => 'datetime',
+        ];
+    }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function isLinked(): bool
-    {
-        return $this->linked_at !== null;
     }
 
     public function isOtpValid(): bool

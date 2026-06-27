@@ -10,13 +10,6 @@ class Category extends Model
 {
     protected $fillable = ['user_id', 'name', 'icon', 'type', 'color'];
 
-    protected function casts(): array
-    {
-        return [
-            'type' => 'string',
-        ];
-    }
-
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

@@ -20,9 +20,4 @@ class Notification extends Model
     {
         return $this->belongsTo(User::class);
     }
-
-    public function debt(): BelongsTo
-    {
-        return $this->belongsTo(Debt::class);
-    }
 }

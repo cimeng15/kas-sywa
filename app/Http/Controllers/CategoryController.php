@@ -21,14 +21,7 @@ class CategoryController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'type' => 'required|in:income,expense',
-            'icon' => 'nullable|string|max:255',
-            'color' => 'nullable|string|max:255',
-        ]);
-
-        auth()->user()->categories()->create($validated);
+        auth()->user()->categories()->create($request->validate($this->rules()));
 
         return redirect()->route('categories.index')->with('success', 'Kategori berhasil ditambahkan.');
     }
@@ -43,15 +36,7 @@ class CategoryController extends Controller
     public function update(Request $request, string $id)
     {
         $category = auth()->user()->categories()->findOrFail($id);
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'type' => 'required|in:income,expense',
-            'icon' => 'nullable|string|max:255',
-            'color' => 'nullable|string|max:255',
-        ]);
-
-        $category->update($validated);
+        $category->update($request->validate($this->rules()));
 
         return redirect()->route('categories.index')->with('success', 'Kategori berhasil diperbarui.');
     }
@@ -62,5 +47,15 @@ class CategoryController extends Controller
         $category->delete();
 
         return redirect()->route('categories.index')->with('success', 'Kategori berhasil dihapus.');
+    }
+
+    protected function rules(): array
+    {
+        return [
+            'name' => 'required|string|max:255',
+            'type' => 'required|in:income,expense',
+            'icon' => 'nullable|string|max:255',
+            'color' => 'nullable|string|max:255',
+        ];
     }
 }

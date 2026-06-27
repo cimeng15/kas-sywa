@@ -12,6 +12,14 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <style>[x-cloak]{display:none!important}</style>
+        <script>
+            (function() {
+                var theme = localStorage.getItem('theme');
+                if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                }
+            })();
+        </script>
     </head>
     <body class="font-sans antialiased" style="font-family: 'Inter', sans-serif;">
         @yield('content')

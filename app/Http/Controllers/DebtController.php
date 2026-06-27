@@ -33,20 +33,7 @@ class DebtController extends Controller
 
     public function store(Request $request)
     {
-        $rules = [
-            'type' => 'required|in:utang,piutang',
-            'payment_type' => 'required|in:bebas,cicilan_tetap',
-            'person_name' => 'required|string|max:255',
-            'total_amount' => 'required|numeric|min:0',
-            'due_date' => 'nullable|date',
-            'note' => 'nullable|string|max:255',
-        ];
-
-        if ($request->payment_type === 'cicilan_tetap') {
-            $rules['installment_amount'] = 'required|numeric|min:1';
-        }
-
-        $validated = $request->validate($rules);
+        $validated = $request->validate($this->debtValidationRules($request));
 
         $validated['user_id'] = auth()->id();
         $validated['created_by'] = auth()->id();
@@ -80,20 +67,7 @@ class DebtController extends Controller
     {
         $debt = $this->getFamilyDebts()->findOrFail($id);
 
-        $rules = [
-            'type' => 'required|in:utang,piutang',
-            'payment_type' => 'required|in:bebas,cicilan_tetap',
-            'person_name' => 'required|string|max:255',
-            'total_amount' => 'required|numeric|min:0',
-            'due_date' => 'nullable|date',
-            'note' => 'nullable|string|max:255',
-        ];
-
-        if ($request->payment_type === 'cicilan_tetap') {
-            $rules['installment_amount'] = 'required|numeric|min:1';
-        }
-
-        $validated = $request->validate($rules);
+        $validated = $request->validate($this->debtValidationRules($request));
 
         if ($validated['payment_type'] === 'bebas') {
             $validated['installment_amount'] = null;
@@ -206,5 +180,23 @@ class DebtController extends Controller
         $debt->save();
 
         return redirect()->route('debts.show', $debt->id)->with('success', 'Cicilan ke-' . $validated['installment_number'] . ' berhasil dibayar.');
+    }
+
+    protected function debtValidationRules(Request $request): array
+    {
+        $rules = [
+            'type' => 'required|in:utang,piutang',
+            'payment_type' => 'required|in:bebas,cicilan_tetap',
+            'person_name' => 'required|string|max:255',
+            'total_amount' => 'required|numeric|min:0',
+            'due_date' => 'nullable|date',
+            'note' => 'nullable|string|max:255',
+        ];
+
+        if ($request->payment_type === 'cicilan_tetap') {
+            $rules['installment_amount'] = 'required|numeric|min:1';
+        }
+
+        return $rules;
     }
 }

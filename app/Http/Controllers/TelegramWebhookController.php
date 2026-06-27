@@ -5,9 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\TelegramUser;
 use App\Models\Transaction;
-use App\Services\TelegramCommandParser;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Telegram\Bot\Api;
 
@@ -30,8 +28,7 @@ class TelegramWebhookController extends Controller
         $chatId = $message['chat']['id'];
         $text = trim($message['text']);
 
-        $parser = new TelegramCommandParser;
-        $parsed = $parser->parse($text);
+        $parsed = $this->parseCommand($text);
 
         if (!$parsed) {
             $this->sendMessage($chatId, "❌ Perintah tidak dikenal.\n\nKetik /bantu untuk melihat daftar perintah.");
@@ -44,6 +41,28 @@ class TelegramWebhookController extends Controller
             'nota' => $this->handleNota($chatId, $parsed),
             default => $this->sendMessage($chatId, "❌ Perintah tidak dikenal."),
         };
+    }
+
+    protected function parseCommand(string $text): ?array
+    {
+        $text = trim($text);
+
+        if (preg_match('/^\/nota\s+(masuk|keluar)\s+(\d+(?:[.,]\d+)?)\s+(.+)/iu', $text, $m)) {
+            $type = strtolower($m[1]) === 'masuk' ? 'income' : 'expense';
+            $amount = (float) str_replace(',', '.', $m[2]);
+            $description = trim($m[3]);
+            return ['command' => 'nota', 'type' => $type, 'amount' => $amount, 'description' => $description];
+        }
+
+        if (preg_match('/^\/link\s+(\S+)/iu', $text, $m)) {
+            return ['command' => 'link', 'code' => trim($m[1])];
+        }
+
+        if (preg_match('/^\/bantu/i', $text)) {
+            return ['command' => 'bantu'];
+        }
+
+        return null;
     }
 
     protected function handleBantu(int $chatId): void
@@ -113,17 +132,15 @@ class TelegramWebhookController extends Controller
 
         $category = $this->detectCategory($user, $type, $description);
 
-        DB::transaction(function () use ($user, $type, $amount, $description, $category) {
-            Transaction::create([
-                'user_id' => $user->id,
-                'created_by' => $user->id,
-                'category_id' => $category?->id,
-                'type' => $type,
-                'amount' => $amount,
-                'description' => $description,
-                'date' => now(),
-            ]);
-        });
+        Transaction::create([
+            'user_id' => $user->id,
+            'created_by' => $user->id,
+            'category_id' => $category?->id,
+            'type' => $type,
+            'amount' => $amount,
+            'description' => $description,
+            'date' => now(),
+        ]);
 
         $typeLabel = $type === 'income' ? 'Pemasukan' : 'Pengeluaran';
         $categoryName = $category ? $category->name : 'Tanpa Kategori';
