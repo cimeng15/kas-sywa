@@ -28,41 +28,92 @@ class TelegramWebhookController extends Controller
         $chatId = $message['chat']['id'];
         $text = trim($message['text']);
 
-        $parsed = $this->parseCommand($text);
+        $linked = TelegramUser::where('telegram_id', $chatId)
+            ->whereNotNull('linked_at')
+            ->first();
 
-        if (!$parsed) {
-            $this->sendMessage($chatId, "❌ Perintah tidak dikenal.\n\nKetik /bantu untuk melihat daftar perintah.");
+        if (str_starts_with($text, '/bantu')) {
+            $this->handleBantu($chatId);
             return;
         }
 
-        match ($parsed['command']) {
-            'bantu' => $this->handleBantu($chatId),
-            'link' => $this->handleLink($chatId, $parsed['code']),
-            'nota' => $this->handleNota($chatId, $parsed),
-            default => $this->sendMessage($chatId, "❌ Perintah tidak dikenal."),
-        };
-    }
+        if (preg_match('/^\/link\s+(\S+)/iu', $text, $m)) {
+            $this->handleLink($chatId, trim($m[1]));
+            return;
+        }
 
-    protected function parseCommand(string $text): ?array
-    {
-        $text = trim($text);
+        if (!$linked) {
+            $this->sendMessage($chatId, "❌ Akun Telegram belum terhubung.\nBuka web Kas-Keluarga untuk mendapatkan kode OTP, lalu ketik /link \\<kode\\>");
+            return;
+        }
+
+        if (preg_match('/^\/(masuk|keluar)$/iu', $text, $m)) {
+            $type = strtolower($m[1]) === 'masuk' ? 'income' : 'expense';
+            $linked->update(['pending_command' => $type]);
+            $label = $type === 'income' ? 'pemasukan' : 'pengeluaran';
+            $this->sendMessage($chatId, "Silakan ketik nominal dan deskripsi untuk {$label}.\n\n_Contoh: 500 Gaji bulan ini_");
+            return;
+        }
 
         if (preg_match('/^\/(masuk|keluar)\s+(\d+(?:[.,]\d+)?)\s+(.+)/iu', $text, $m)) {
             $type = strtolower($m[1]) === 'masuk' ? 'income' : 'expense';
             $amount = (float) str_replace(',', '.', $m[2]);
             $description = trim($m[3]);
-            return ['command' => 'nota', 'type' => $type, 'amount' => $amount, 'description' => $description];
+            $this->saveTransaction($chatId, $linked, $type, $amount, $description);
+            return;
         }
 
-        if (preg_match('/^\/link\s+(\S+)/iu', $text, $m)) {
-            return ['command' => 'link', 'code' => trim($m[1])];
+        if ($linked->pending_command) {
+            if (preg_match('/^(\d+(?:[.,]\d+)?)\s+(.+)/iu', $text, $m)) {
+                $amount = (float) str_replace(',', '.', $m[1]);
+                $description = trim($m[2]);
+                $type = $linked->pending_command;
+                $linked->update(['pending_command' => null]);
+                $this->saveTransaction($chatId, $linked, $type, $amount, $description);
+                return;
+            }
+
+            $linked->update(['pending_command' => null]);
+            $this->sendMessage($chatId, "❌ Format salah. Transaksi dibatalkan.\n\nKetik /masuk atau /keluar untuk mencatat transaksi baru.");
+            return;
         }
 
-        if (preg_match('/^\/bantu/i', $text)) {
-            return ['command' => 'bantu'];
+        $this->sendMessage($chatId, "❌ Perintah tidak dikenal.\n\nKetik /bantu untuk melihat daftar perintah.");
+    }
+
+    protected function saveTransaction(int $chatId, TelegramUser $linked, string $type, float $amount, string $description): void
+    {
+        if ($amount <= 0) {
+            $this->sendMessage($chatId, "❌ Nominal harus lebih dari 0. Transaksi dibatalkan.");
+            return;
         }
 
-        return null;
+        $user = $linked->user;
+        $category = $this->detectCategory($user, $type, $description);
+
+        Transaction::create([
+            'user_id' => $user->id,
+            'created_by' => $user->id,
+            'category_id' => $category?->id,
+            'type' => $type,
+            'amount' => $amount,
+            'description' => $description,
+            'date' => now(),
+        ]);
+
+        $typeLabel = $type === 'income' ? 'Pemasukan' : 'Pengeluaran';
+        $categoryName = $category ? $category->name : 'Tanpa Kategori';
+        $emoji = $type === 'income' ? '💰' : '💸';
+        $amountFormatted = number_format($amount, 0, ',', '.');
+
+        $reply = "✅ *Transaksi berhasil dicatat!*\n\n"
+            . "{$emoji} Jenis: *{$typeLabel}*\n"
+            . "💵 Nominal: *Rp{$amountFormatted}*\n"
+            . "📂 Kategori: *{$categoryName}*\n"
+            . "📝 Deskripsi: {$description}\n"
+            . "📅 Tanggal: " . now()->translatedFormat('d F Y H:i');
+
+        $this->sendMessage($chatId, $reply);
     }
 
     protected function handleBantu(int $chatId): void
@@ -72,6 +123,7 @@ class TelegramWebhookController extends Controller
             . "_Contoh: /masuk 500 Gaji_\n\n"
             . "/keluar \\<nominal\\> \\<deskripsi\\> — Catat pengeluaran\n"
             . "_Contoh: /keluar 150 Makan siang_\n\n"
+            . "Atau ketik /masuk atau /keluar saja, lalu ikuti petunjuk.\n\n"
             . "/link \\<kode\\> — Hubungkan akun Telegram\n"
             . "_Contoh: /link ABC123_\n\n"
             . "/bantu — Tampilkan daftar ini";
@@ -107,54 +159,6 @@ class TelegramWebhookController extends Controller
 
         $userName = $telegramUser->user->name;
         $this->sendMessage($chatId, "✅ Akun Telegram berhasil dihubungkan dengan *{$userName}*!\n\nSekarang kamu bisa mencatat transaksi via chat.\nKetik /bantu untuk bantuan.");
-    }
-
-    protected function handleNota(int $chatId, array $parsed): void
-    {
-        $linked = TelegramUser::where('telegram_id', $chatId)
-            ->whereNotNull('linked_at')
-            ->first();
-
-        if (!$linked) {
-            $this->sendMessage($chatId, "❌ Akun Telegram belum terhubung.\nBuka web Kas-Keluarga untuk mendapatkan kode OTP, lalu ketik /link \\<kode\\>");
-            return;
-        }
-
-        $user = $linked->user;
-        $type = $parsed['type'];
-        $amount = $parsed['amount'];
-        $description = $parsed['description'];
-
-        if ($amount <= 0) {
-            $this->sendMessage($chatId, "❌ Nominal harus lebih dari 0.");
-            return;
-        }
-
-        $category = $this->detectCategory($user, $type, $description);
-
-        Transaction::create([
-            'user_id' => $user->id,
-            'created_by' => $user->id,
-            'category_id' => $category?->id,
-            'type' => $type,
-            'amount' => $amount,
-            'description' => $description,
-            'date' => now(),
-        ]);
-
-        $typeLabel = $type === 'income' ? 'Pemasukan' : 'Pengeluaran';
-        $categoryName = $category ? $category->name : 'Tanpa Kategori';
-        $emoji = $type === 'income' ? '💰' : '💸';
-        $amountFormatted = number_format($amount, 0, ',', '.');
-
-        $reply = "✅ *Transaksi berhasil dicatat!*\n\n"
-            . "{$emoji} Jenis: *{$typeLabel}*\n"
-            . "💵 Nominal: *Rp{$amountFormatted}*\n"
-            . "📂 Kategori: *{$categoryName}*\n"
-            . "📝 Deskripsi: {$description}\n"
-            . "📅 Tanggal: " . now()->translatedFormat('d F Y');
-
-        $this->sendMessage($chatId, $reply);
     }
 
     protected function detectCategory($user, string $type, string $description): ?Category

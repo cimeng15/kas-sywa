@@ -14,6 +14,7 @@ class TelegramUser extends Model
         'otp_code',
         'otp_expires_at',
         'linked_at',
+        'pending_command',
     ];
 
     protected function casts(): array
