@@ -51,6 +51,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/telegram/link', [TelegramLinkController::class, 'index'])->name('telegram.link');
     Route::post('/telegram/link/generate-otp', [TelegramLinkController::class, 'generateOtp'])->name('telegram.otp.generate');
     Route::delete('/telegram/link', [TelegramLinkController::class, 'unlink'])->name('telegram.unlink');
+    Route::post('/telegram/set-token', [TelegramLinkController::class, 'setToken'])->name('telegram.set-token');
+    Route::post('/telegram/setup-webhook', [TelegramLinkController::class, 'setupWebhook'])->name('telegram.setup-webhook');
+    Route::get('/telegram/webhook-info', [TelegramLinkController::class, 'checkWebhook'])->name('telegram.webhook-info');
 });
 
 require __DIR__.'/auth.php';
