@@ -14,7 +14,7 @@
     </div>
 
     <!-- Navigation Links -->
-    <nav class="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
+    <nav class="flex-1 px-3 py-5 space-y-1">
         <a href="{{ route('dashboard') }}"
             class="nav-glow flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
             {{ request()->routeIs('dashboard') ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/20' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}">
