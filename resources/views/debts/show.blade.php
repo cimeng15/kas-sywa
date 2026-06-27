@@ -9,7 +9,7 @@
     $remaining = $debt->remaining_amount;
     $progress = $debt->total_amount > 0 ? ($paidAmount / $debt->total_amount) * 100 : 0;
     $isLunas = $debt->status === 'lunas';
-    $isOverdue = $debt->due_date && \Carbon\Carbon::parse($debt->due_date)->isPast() && $remaining > 0 && !$isLunas;
+    $isOverdue = $debt->isOverdue();
     $status = $isLunas ? 'Lunas' : ($isOverdue ? 'Jatuh Tempo' : 'Belum Lunas');
 @endphp
 
@@ -127,7 +127,7 @@
             @if($debt->due_date)
                 <p class="mt-2 text-xs {{ $isOverdue ? 'text-red-600 font-medium' : 'text-gray-400 dark:text-gray-500' }}">
                     Jatuh tempo: {{ \Carbon\Carbon::parse($debt->due_date)->format('d M Y') }}
-                    @if($isOverdue) (Terlambat {{ \Carbon\Carbon::parse($debt->due_date)->diffInDays(now()) }} hari) @endif
+                    @if($isOverdue) (Terlambat {{ $debt->getOverdueDays() }} hari) @endif
                 </p>
             @endif
         </div>

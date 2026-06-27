@@ -70,15 +70,46 @@ class Debt extends Model
             return $this->getTotalInstallments();
         }
         $now = Carbon::now();
-        $firstDue = Carbon::parse($this->due_date);
-        if ($now < $firstDue) {
+        $firstDue = Carbon::parse($this->due_date)->startOfDay();
+        $nowDay = $now->copy()->startOfDay();
+
+        if ($nowDay < $firstDue) {
             return 0;
         }
-        return min($firstDue->diffInMonths($now) + 1, $this->getTotalInstallments());
+
+        $monthsPassed = (int) $firstDue->diffInMonths($nowDay) + 1;
+        return min($monthsPassed, $this->getTotalInstallments());
     }
 
     public function getOverdueInstallments(): int
     {
-        return max(0, $this->getExpectedInstallments() - $this->getPaidInstallments());
+        if (!$this->isCicilanTetap()) {
+            return $this->status === 'belum_lunas' && $this->due_date && Carbon::parse($this->due_date)->isPast() ? 1 : 0;
+        }
+
+        $expected = $this->getExpectedInstallments();
+        $paid = $this->getPaidInstallments();
+        return max(0, $expected - $paid);
+    }
+
+    public function isOverdue(): bool
+    {
+        if ($this->status === 'lunas') return false;
+        if ($this->remaining_amount <= 0) return false;
+
+        if ($this->isCicilanTetap()) {
+            return $this->getOverdueInstallments() > 0;
+        }
+
+        return $this->due_date && Carbon::parse($this->due_date)->startOfDay()->isPast();
+    }
+
+    public function getOverdueDays(): int
+    {
+        if (!$this->due_date) return 0;
+        $now = Carbon::now()->startOfDay();
+        $due = Carbon::parse($this->due_date)->startOfDay();
+        if ($now <= $due) return 0;
+        return (int) $due->diffInDays($now);
     }
 }

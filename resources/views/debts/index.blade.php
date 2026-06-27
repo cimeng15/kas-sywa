@@ -47,7 +47,8 @@
                 $remaining = $debt->remaining_amount;
                 $progress = $debt->total_amount > 0 ? (($debt->total_amount - $remaining) / $debt->total_amount) * 100 : 0;
                 $isLunas = $debt->status === 'lunas';
-                $isOverdue = $debt->due_date && \Carbon\Carbon::parse($debt->due_date)->isPast() && $remaining > 0 && !$isLunas;
+                $isOverdue = $debt->isOverdue();
+                $overdueDays = $debt->getOverdueDays();
             @endphp
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm dark:shadow-gray-950/20 border border-gray-100 dark:border-gray-800 p-5 flex flex-col">
                 <div class="flex items-start justify-between mb-3">
