@@ -12,18 +12,27 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <style>[x-cloak]{display:none!important}</style>
+        <script>
+            // Anti-glitch: apply dark mode before page renders
+            (function() {
+                var theme = localStorage.getItem('theme');
+                if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                }
+            })();
+        </script>
     </head>
     <body class="font-sans antialiased bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-200" style="font-family: 'Inter', sans-serif;">
-        <div x-data="{ sidebarOpen: false }" class="min-h-screen flex">
+        <div x-data="{ sidebarOpen: false }" class="flex h-screen overflow-hidden">
             <div x-show="sidebarOpen" x-on:click="sidebarOpen = false" x-transition:enter="transition-opacity ease-linear duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-30 bg-gray-900/50 hidden" style="display: none;"></div>
 
             <!-- Sidebar -->
-            <aside class="hidden lg:flex flex-col w-64 bg-gradient-to-b from-gray-900 via-gray-900 to-emerald-950 flex-shrink-0 border-r border-white/5">
+            <aside class="hidden lg:flex flex-col w-64 bg-gradient-to-b from-gray-900 via-gray-900 to-emerald-950 flex-shrink-0 border-r border-white/5 h-screen sticky top-0">
                 @include('layouts.navigation')
             </aside>
 
             <!-- Main Content -->
-            <div class="flex-1 flex flex-col min-w-0">
+            <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
                 <!-- Top Navbar -->
                 <header class="sticky top-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-colors duration-200">
                     <div class="flex items-center justify-between h-16 px-4 sm:px-6">
@@ -96,10 +105,8 @@
         <script>
         function themeHandler() {
             return {
-                isDark: false,
+                isDark: document.documentElement.classList.contains('dark'),
                 init() {
-                    this.isDark = localStorage.getItem('theme') === 'dark' ||
-                        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
                     this.apply();
                 },
                 toggle() { this.isDark = !this.isDark; this.apply(); },
