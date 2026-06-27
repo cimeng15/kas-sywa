@@ -19,10 +19,8 @@
     <div class="hidden lg:flex lg:w-1/2 relative z-10 items-center justify-center px-12">
         <div class="max-w-lg text-white">
             <div class="flex items-center gap-3 mb-8 animate-slide-left delay-100">
-                <div class="h-14 w-14 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-xl animate-float">
-                    <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13h2l3-9 4 18 3-12 2 3h4"/>
-                    </svg>
+                <div class="h-14 w-14 rounded-2xl overflow-hidden shadow-xl animate-float ring-2 ring-white/30">
+                    <img src="{{ asset('img/logo.svg') }}" alt="Logo" class="h-full w-full">
                 </div>
                 <div>
                     <h1 class="text-3xl font-black tracking-tight">Kas-Keluarga <span class="text-lime-200 text-lg font-semibold">by Sywa</span></h1>
@@ -79,10 +77,8 @@
         <div class="w-full max-w-md">
             <!-- Mobile logo -->
             <div class="lg:hidden text-center mb-8 animate-bounce-in">
-                <div class="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 shadow-xl mb-4 animate-float">
-                    <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13h2l3-9 4 18 3-12 2 3h4"/>
-                    </svg>
+                <div class="inline-flex items-center justify-center h-16 w-16 rounded-2xl overflow-hidden shadow-xl mb-4 animate-float ring-2 ring-white/30">
+                    <img src="{{ asset('img/logo.svg') }}" alt="Logo" class="h-full w-full">
                 </div>
                 <h2 class="text-2xl font-black text-white">Kas-Keluarga <span class="text-lime-200 text-sm font-semibold">by Sywa</span></h2>
                 <p class="text-sm text-emerald-100 mt-1">Masuk ke akun Anda</p>

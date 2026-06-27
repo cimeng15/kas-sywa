@@ -1,17 +1,15 @@
 <!-- Sidebar Content (Desktop) -->
 <div class="flex flex-col h-full">
     <!-- Logo / Brand -->
-    <div class="flex items-center gap-3 px-5 py-5 border-b border-white/10">
-        <div class="h-11 w-11 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/20 animate-float">
-            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 13h2l3-9 4 18 3-12 2 3h4"/>
-            </svg>
+    <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-5 py-5 border-b border-white/10 hover:bg-white/5 transition-colors">
+        <div class="h-11 w-11 rounded-xl overflow-hidden flex-shrink-0 shadow-lg shadow-emerald-500/20 animate-float">
+            <img src="{{ asset('img/logo.svg') }}" alt="Logo" class="h-full w-full">
         </div>
         <div>
             <h1 class="text-lg font-black text-white leading-tight tracking-tight">Kas-Keluarga</h1>
             <p class="text-xs text-emerald-300/70 font-medium">by Sywa</p>
         </div>
-    </div>
+    </a>
 
     <!-- Navigation Links -->
     <nav class="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
