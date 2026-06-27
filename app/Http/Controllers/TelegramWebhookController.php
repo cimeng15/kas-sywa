@@ -121,7 +121,7 @@ class TelegramWebhookController extends Controller
                 'type' => $type,
                 'amount' => $amount,
                 'description' => $description,
-                'date' => now()->toDateString(),
+                'date' => now(),
             ]);
         });
 

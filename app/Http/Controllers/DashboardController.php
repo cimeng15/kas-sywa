@@ -32,7 +32,7 @@ class DashboardController extends Controller
 
         $latestTransactions = Transaction::with(['category', 'user'])
             ->whereIn('user_id', $memberIds)
-            ->latest('date')->take(5)->get();
+            ->latest('created_at')->take(5)->get();
 
         $notifications = Notification::where('user_id', $user->id)
             ->where('is_read', false)->latest()->take(5)->get();
