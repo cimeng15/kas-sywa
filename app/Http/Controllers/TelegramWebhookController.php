@@ -1,0 +1,178 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Category;
+use App\Models\TelegramUser;
+use App\Models\Transaction;
+use App\Services\TelegramCommandParser;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Telegram\Bot\Api;
+
+class TelegramWebhookController extends Controller
+{
+    protected function telegram(): Api
+    {
+        return new Api(config('telegram.bot_token'));
+    }
+
+    public function handle(Request $request): void
+    {
+        $update = $request->all();
+
+        $message = $update['message'] ?? null;
+        if (!$message || !isset($message['chat']['id'], $message['text'])) {
+            return;
+        }
+
+        $chatId = $message['chat']['id'];
+        $text = trim($message['text']);
+
+        $parser = new TelegramCommandParser;
+        $parsed = $parser->parse($text);
+
+        if (!$parsed) {
+            $this->sendMessage($chatId, "❌ Perintah tidak dikenal.\n\nKetik /bantu untuk melihat daftar perintah.");
+            return;
+        }
+
+        match ($parsed['command']) {
+            'bantu' => $this->handleBantu($chatId),
+            'link' => $this->handleLink($chatId, $parsed['code']),
+            'nota' => $this->handleNota($chatId, $parsed),
+            default => $this->sendMessage($chatId, "❌ Perintah tidak dikenal."),
+        };
+    }
+
+    protected function handleBantu(int $chatId): void
+    {
+        $text = "📋 *Daftar Perintah Kas-Keluarga*\n\n"
+            . "/nota masuk \\<nominal\\> \\<deskripsi\\> — Catat pemasukan\n"
+            . "_Contoh: /nota masuk 500 Gaji_\n\n"
+            . "/nota keluar \\<nominal\\> \\<deskripsi\\> — Catat pengeluaran\n"
+            . "_Contoh: /nota keluar 150 Makan siang_\n\n"
+            . "/link \\<kode\\> — Hubungkan akun Telegram\n"
+            . "_Contoh: /link ABC123_\n\n"
+            . "/bantu — Tampilkan daftar ini";
+
+        $this->sendMessage($chatId, $text);
+    }
+
+    protected function handleLink(int $chatId, string $code): void
+    {
+        $telegramUser = TelegramUser::where('otp_code', strtoupper($code))->first();
+
+        if (!$telegramUser || !$telegramUser->isOtpValid()) {
+            $this->sendMessage($chatId, "❌ Kode OTP tidak valid atau sudah kadaluarsa.\nSilakan buka web Kas-Keluarga dan generate kode baru.");
+            return;
+        }
+
+        $existingLink = TelegramUser::where('telegram_id', $chatId)
+            ->whereNotNull('linked_at')
+            ->first();
+
+        if ($existingLink && $existingLink->id !== $telegramUser->id) {
+            $this->sendMessage($chatId, "❌ Akun Telegram ini sudah terhubung dengan akun Kas-Keluarga lain.");
+            return;
+        }
+
+        $telegramUser->update([
+            'telegram_id' => $chatId,
+            'chat_id' => $chatId,
+            'otp_code' => null,
+            'otp_expires_at' => null,
+            'linked_at' => now(),
+        ]);
+
+        $userName = $telegramUser->user->name;
+        $this->sendMessage($chatId, "✅ Akun Telegram berhasil dihubungkan dengan *{$userName}*!\n\nSekarang kamu bisa mencatat transaksi via chat.\nKetik /bantu untuk bantuan.");
+    }
+
+    protected function handleNota(int $chatId, array $parsed): void
+    {
+        $linked = TelegramUser::where('telegram_id', $chatId)
+            ->whereNotNull('linked_at')
+            ->first();
+
+        if (!$linked) {
+            $this->sendMessage($chatId, "❌ Akun Telegram belum terhubung.\nBuka web Kas-Keluarga untuk mendapatkan kode OTP, lalu ketik /link \\<kode\\>");
+            return;
+        }
+
+        $user = $linked->user;
+        $type = $parsed['type'];
+        $amount = $parsed['amount'];
+        $description = $parsed['description'];
+
+        if ($amount <= 0) {
+            $this->sendMessage($chatId, "❌ Nominal harus lebih dari 0.");
+            return;
+        }
+
+        $category = $this->detectCategory($user, $type, $description);
+
+        DB::transaction(function () use ($user, $type, $amount, $description, $category) {
+            Transaction::create([
+                'user_id' => $user->id,
+                'created_by' => $user->id,
+                'category_id' => $category?->id,
+                'type' => $type,
+                'amount' => $amount,
+                'description' => $description,
+                'date' => now()->toDateString(),
+            ]);
+        });
+
+        $typeLabel = $type === 'income' ? 'Pemasukan' : 'Pengeluaran';
+        $categoryName = $category ? $category->name : 'Tanpa Kategori';
+        $emoji = $type === 'income' ? '💰' : '💸';
+        $amountFormatted = number_format($amount, 0, ',', '.');
+
+        $reply = "✅ *Transaksi berhasil dicatat!*\n\n"
+            . "{$emoji} Jenis: *{$typeLabel}*\n"
+            . "💵 Nominal: *Rp{$amountFormatted}*\n"
+            . "📂 Kategori: *{$categoryName}*\n"
+            . "📝 Deskripsi: {$description}\n"
+            . "📅 Tanggal: " . now()->translatedFormat('d F Y');
+
+        $this->sendMessage($chatId, $reply);
+    }
+
+    protected function detectCategory($user, string $type, string $description): ?Category
+    {
+        $categories = Category::where('user_id', $user->id)
+            ->where('type', $type)
+            ->get();
+
+        $desc = strtolower($description);
+
+        foreach ($categories as $cat) {
+            $words = explode(' ', strtolower($cat->name));
+            foreach ($words as $word) {
+                if (strlen($word) >= 3 && str_contains($desc, $word)) {
+                    return $cat;
+                }
+            }
+        }
+
+        return $categories->first();
+    }
+
+    protected function sendMessage(int $chatId, string $text): void
+    {
+        try {
+            $this->telegram()->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $text,
+                'parse_mode' => 'Markdown',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Telegram sendMessage failed', [
+                'chat_id' => $chatId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+}

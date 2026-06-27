@@ -7,6 +7,8 @@ use App\Http\Controllers\DebtController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\TelegramLinkController;
+use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -41,6 +43,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');
     Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+Route::post('/telegram/webhook', [TelegramWebhookController::class, 'handle']);
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/telegram/link', [TelegramLinkController::class, 'index'])->name('telegram.link');
+    Route::post('/telegram/link/generate-otp', [TelegramLinkController::class, 'generateOtp'])->name('telegram.otp.generate');
+    Route::delete('/telegram/link', [TelegramLinkController::class, 'unlink'])->name('telegram.unlink');
 });
 
 require __DIR__.'/auth.php';
