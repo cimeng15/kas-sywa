@@ -23,16 +23,17 @@
         </script>
     </head>
     <body class="font-sans antialiased bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-200" style="font-family: 'Inter', sans-serif;">
-        <div x-data="{ sidebarOpen: false }" class="lg:grid lg:grid-cols-[256px_1fr]">
+        <div x-data="{ sidebarOpen: false }" class="flex h-screen overflow-hidden">
             <div x-show="sidebarOpen" x-on:click="sidebarOpen = false" x-transition:enter="transition-opacity ease-linear duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-30 bg-gray-900/50 hidden" style="display: none;"></div>
 
             <!-- Sidebar -->
-            <aside class="hidden lg:flex flex-col bg-gradient-to-b from-gray-900 via-gray-900 to-emerald-950 border-r border-white/5 h-screen sticky top-0">
+            <aside class="hidden lg:flex flex-col w-64 bg-gradient-to-b from-gray-900 via-gray-900 to-emerald-950 flex-shrink-0 border-r border-white/5 h-screen sticky top-0">
                 @include('layouts.navigation')
             </aside>
 
             <!-- Main Content -->
-            <div class="flex flex-col min-h-screen">
+            <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+                <!-- Top Navbar -->
                 <header class="sticky top-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-colors duration-200">
                     <div class="flex items-center justify-between h-16 px-4 sm:px-6">
                         <div class="flex items-center gap-3">
@@ -59,7 +60,8 @@
                                     <svg class="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                                     </svg>
-                                    @if(($unreadCount ?? 0) > 0)
+                                    @php $unreadCount = \App\Models\Notification::where('user_id', auth()->id())->where('is_read', false)->count(); @endphp
+                                    @if($unreadCount > 0)
                                         <span class="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-gradient-to-r from-red-500 to-orange-500 rounded-full">{{ $unreadCount }}</span>
                                     @endif
                                 </a>
